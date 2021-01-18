@@ -23,9 +23,9 @@ function playFor(aPerformance) {
 }
 
 // 用aPerformance替代perf，由于js是动态类型语言，跟踪变量的类型很有必要
-function amountFor(aPerformance, play) {
+function amountFor(aPerformance) {
   let result = 0;
-  switch (play.type) {
+  switch (playFor(aPerformance).type) {
     case 'tragedy':
       result = 40000;
       if (aPerformance.audience > 30) {
@@ -40,29 +40,36 @@ function amountFor(aPerformance, play) {
       result += 300 * aPerformance.audience;
       break;
     default:
-      throw new Error(`unknown type: ${play.type}`);
+      throw new Error(`unknown type: ${playFor(aPerformance).type}`);
   }
   return result;
 }
 
-function statement(invoice, plays) {
+function volumeCreditsFor(aPerformance) {
+  let volumeCredits = Math.max(aPerformance.audience - 30, 0);
+  if (playFor(aPerformance).type === 'comedy') volumeCredits += Math.floor(aPerformance.audience / 5);
+  return volumeCredits;
+}
+
+function usd(aNumber) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(aNumber / 100);
+}
+
+function statement(invoice) {
   let totalAmount = 0;
-  let volumeCredits = 0;
   let result = `Statement for ${invoice.customer}\n`;
-  const { format } = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
   // eslint-disable-next-line no-restricted-syntax
   for (const perf of invoice.performances) {
-    const thisAmount = amountFor(perf, playFor(perf));
-
-    // add volume credits
-    volumeCredits += Math.max(perf.audience - 30, 0);
-    // add extra credit for every ten comedy attendees
-    if (playFor(perf).type === 'comedy') volumeCredits += Math.floor(perf.audience / 5);
-    // print line for this order
-    result += `${playFor(perf).name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n`;
-    totalAmount += thisAmount;
+    result += `${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n`;
+    totalAmount += amountFor(perf);
   }
-  result += `Amount owed is ${format(totalAmount / 100)}\n}`;
+
+  let volumeCredits = 0;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const perf of invoice.performances) {
+    volumeCredits += volumeCreditsFor(perf);
+  }
+  result += `Amount owed is ${usd(totalAmount)}\n}`;
   result += `You earned ${volumeCredits} credits\n`;
   return result;
 }
