@@ -46,31 +46,42 @@ function amountFor(aPerformance) {
 }
 
 function volumeCreditsFor(aPerformance) {
-  let volumeCredits = Math.max(aPerformance.audience - 30, 0);
-  if (playFor(aPerformance).type === 'comedy') volumeCredits += Math.floor(aPerformance.audience / 5);
-  return volumeCredits;
+  let result = Math.max(aPerformance.audience - 30, 0);
+  if (playFor(aPerformance).type === 'comedy') result += Math.floor(aPerformance.audience / 5);
+  return result;
 }
 
 function usd(aNumber) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(aNumber / 100);
 }
 
+function totalVolumeCredit() {
+  let result = 0;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const perf of invoiceGlobal.performances) {
+    result += volumeCreditsFor(perf);
+  }
+  return result;
+}
+
+function totalAmount() {
+  let result = 0;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const perf of invoiceGlobal.performances) {
+    result += amountFor(perf);
+  }
+  return result;
+}
+
 function statement(invoice) {
-  let totalAmount = 0;
   let result = `Statement for ${invoice.customer}\n`;
   // eslint-disable-next-line no-restricted-syntax
-  for (const perf of invoice.performances) {
+  for (const perf of invoiceGlobal.performances) {
     result += `${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n`;
-    totalAmount += amountFor(perf);
   }
 
-  let volumeCredits = 0;
-  // eslint-disable-next-line no-restricted-syntax
-  for (const perf of invoice.performances) {
-    volumeCredits += volumeCreditsFor(perf);
-  }
-  result += `Amount owed is ${usd(totalAmount)}\n}`;
-  result += `You earned ${volumeCredits} credits\n`;
+  result += `Amount owed is ${usd(totalAmount())}\n}`;
+  result += `You earned ${totalVolumeCredit()} credits\n`;
   return result;
 }
 
