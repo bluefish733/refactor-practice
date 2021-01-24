@@ -57,28 +57,25 @@ function usd(aNumber) {
 
 function totalVolumeCredit() {
   let result = 0;
-  // eslint-disable-next-line no-restricted-syntax
-  for (const perf of invoiceGlobal.performances) {
+  invoiceGlobal.performances.forEach((perf) => {
     result += volumeCreditsFor(perf);
-  }
+  });
   return result;
 }
 
 function totalAmount() {
   let result = 0;
-  // eslint-disable-next-line no-restricted-syntax
-  for (const perf of invoiceGlobal.performances) {
+  invoiceGlobal.performances.forEach((perf) => {
     result += amountFor(perf);
-  }
+  });
   return result;
 }
 
 function statement(invoice) {
   let result = `Statement for ${invoice.customer}\n`;
-  // eslint-disable-next-line no-restricted-syntax
-  for (const perf of invoiceGlobal.performances) {
+  invoiceGlobal.performances.forEach((perf) => {
     result += `${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n`;
-  }
+  });
 
   result += `Amount owed is ${usd(totalAmount())}\n}`;
   result += `You earned ${totalVolumeCredit()} credits\n`;
